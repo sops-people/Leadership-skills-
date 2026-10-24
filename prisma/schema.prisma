@@ -1,0 +1,191 @@
+// All three parts: platform (Maria), assessment and 360 (Darko), learning path (Sops).
+// Anything that belongs to a user must reference User with onDelete: Cascade,
+// so "delete my account" removes all of that user's data.
+//
+// SQLite for local dev so nobody needs a database server. When hosting is chosen,
+// switch the provider to "postgresql". JSON is stored as text (String) to stay portable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Shared format: User profile (see src/shared/formats.ts).
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  /// Null until onboarding is complete.
+  currentRole String?
+  targetRole  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  loginTokens   LoginToken[]
+  events        Event[]
+  emailRequests EmailRequest[]
+  rounds        AssessmentRound[]
+  skillProgress SkillProgress[]
+  itemProgress  ItemProgress[]
+  itemVotes     ItemVote[]
+}
+
+/// One-time log-in links. Only a hash of the token is stored.
+model LoginToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+/// Shared format: Email request (see src/shared/formats.ts).
+model EmailRequest {
+  id          String    @id @default(uuid())
+  recipient   String
+  template    String
+  /// JSON array of URLs.
+  links       String    @default("[]")
+  /// JSON object of template variables.
+  variables   String    @default("{}")
+  sendAt      DateTime?
+  requestedBy String
+  /// Groups emails for later clean-up, e.g. a 360 cycle id.
+  relatedId   String?
+  /// The app user this email is about, if any.
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// queued | sending | sent | failed
+  status      String    @default("queued")
+  /// When a send run picked it up; used to retry rows stuck in "sending".
+  claimedAt   DateTime?
+  sentAt      DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([status, sendAt])
+  @@index([relatedId])
+}
+
+/// Success-metric events (PRD section 9). Names and props: src/shared/events.ts.
+model Event {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// JSON object.
+  props     String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}
+
+// ---------- Assessment and 360 (Darko) ----------
+
+/// One self-assessment + 360 round. Re-assessment starts a new round.
+model AssessmentRound {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number          Int
+  startedAt       DateTime      @default(now())
+  selfCompletedAt DateTime?
+  /// Set once when the 3rd rater responds; guards the 360-cycle-closed event.
+  cycleClosedAt   DateTime?
+  /// Set once when the learning path is first complete; guards the path-created event.
+  pathCreatedAt   DateTime?
+  selfRatings     SelfRating[]
+  invites         RaterInvite[]
+
+  @@unique([userId, number])
+}
+
+model SelfRating {
+  id      String          @id @default(uuid())
+  roundId String
+  round   AssessmentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  skillId String
+  score   Int
+
+  @@unique([roundId, skillId])
+}
+
+/// A 360 invite. The token is the rater's private survey link.
+model RaterInvite {
+  token          String          @id
+  roundId        String
+  round          AssessmentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  raterName      String
+  raterEmail     String
+  relationship   String
+  createdAt      DateTime        @default(now())
+  reminders      Int             @default(0)
+  lastRemindedAt DateTime?
+  completedAt    DateTime?
+  ratings        RaterRating[]
+}
+
+model RaterRating {
+  id          String      @id @default(uuid())
+  inviteToken String
+  invite      RaterInvite @relation(fields: [inviteToken], references: [token], onDelete: Cascade)
+  skillId     String
+  /// Null means "not observed".
+  score       Int?
+
+  @@unique([inviteToken, skillId])
+}
+
+// ---------- Learning path (Sops) ----------
+
+/// not_started | in_progress | improved
+model SkillProgress {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId   String
+  status    String
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, skillId])
+}
+
+/// not_started | in_progress | done
+model ItemProgress {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId   String
+  itemId    String
+  status    String
+  updatedAt DateTime @updatedAt
+
+  /// Per skill: the same link can appear under two skills with separate progress.
+  @@id([userId, skillId, itemId])
+}
+
+/// "Was this useful?" votes. They change the ranking.
+model ItemVote {
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  useful    Int    @default(0)
+  notUseful Int    @default(0)
+
+  @@id([userId, itemId])
+}
+
+/// Search results per skill, so content search runs once, not on every page view.
+model ContentCache {
+  skillId   String   @id
+  /// JSON array of content items.
+  items     String
+  deadLinks Int      @default(0)
+  /// JSON array of source errors.
+  errors    String   @default("[]")
+  updatedAt DateTime @updatedAt
+}

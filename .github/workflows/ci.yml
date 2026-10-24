@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./ci.db"
+      SESSION_SECRET: "ci-only-secret-0123456789abcdef0123456789"
+      APP_URL: "http://localhost:3000"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # No lockfile yet: the first person to run `npm install` should commit package-lock.json,
+      # then switch this step to `npm ci`.
+      - run: npm install
+      - run: npx prisma db push --skip-generate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
