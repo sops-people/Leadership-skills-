@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+# Runtime data, not shared
+data/cache/
+data/progress/
+data/outbox.jsonl

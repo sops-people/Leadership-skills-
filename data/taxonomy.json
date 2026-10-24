@@ -1,0 +1,233 @@
+{
+  "version": "0.1-sample",
+  "skills": [
+    {
+      "skill_id": "strategic-thinking",
+      "name": "Strategic thinking & vision-setting",
+      "category": "c-level",
+      "description": "Defines direction for the org",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "financial-acumen",
+      "name": "Financial acumen & P&L ownership",
+      "category": "c-level",
+      "description": "Accountable for business outcomes",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "org-design-change",
+      "name": "Organizational design & change management",
+      "category": "c-level",
+      "description": "Shapes how the company is structured and evolves",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "stakeholder-board",
+      "name": "Stakeholder & board management",
+      "category": "c-level",
+      "description": "Manages upward/outward accountability",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "cross-functional-influence",
+      "name": "Cross-functional influence",
+      "category": "c-level",
+      "description": "Drives alignment across departments without direct authority",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "crisis-risk",
+      "name": "Crisis & risk management",
+      "category": "c-level",
+      "description": "Handles high-stakes, high-ambiguity situations",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "talent-succession",
+      "name": "Talent development & succession planning",
+      "category": "c-level",
+      "description": "Builds the next layer of leadership",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "decision-ambiguity",
+      "name": "Decision-making under ambiguity",
+      "category": "c-level",
+      "description": "Makes calls with incomplete information",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "ethics-governance",
+      "name": "Ethical judgment & governance",
+      "category": "c-level",
+      "description": "Sets the standard for compliance and integrity",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "industry-expertise",
+      "name": "Industry/market expertise",
+      "category": "c-level",
+      "description": "Credibility and pattern recognition in the domain",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "negotiation",
+      "name": "Negotiation",
+      "category": "c-level",
+      "description": "High-stakes deals, partnerships, compensation",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "communication-storytelling",
+      "name": "Communication & storytelling",
+      "category": "soft",
+      "description": "Aligns and motivates at scale",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "empathy-listening",
+      "name": "Empathy & active listening",
+      "category": "soft",
+      "description": "Builds trust, surfaces real issues early",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "emotional-intelligence",
+      "name": "Emotional intelligence & self-awareness",
+      "category": "soft",
+      "description": "Core to identifying one's own blind spots",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "conflict-resolution",
+      "name": "Conflict resolution",
+      "category": "soft",
+      "description": "Leaders mediate disputes constantly",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "adaptability-resilience",
+      "name": "Adaptability & resilience",
+      "category": "soft",
+      "description": "Leading through ambiguity and setbacks",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "feedback",
+      "name": "Giving & receiving feedback",
+      "category": "soft",
+      "description": "Foundation of people management and growth",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "inclusive-leadership",
+      "name": "Inclusive leadership",
+      "category": "soft",
+      "description": "Building belonging across diverse teams",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    },
+    {
+      "skill_id": "coaching-mentoring",
+      "name": "Coaching & mentoring mindset",
+      "category": "soft",
+      "description": "Developing others, not just directing them",
+      "role_bars": {
+        "Manager": 3,
+        "Director": 3,
+        "VP": 4,
+        "C-level": 5
+      }
+    }
+  ]
+}
