@@ -12,7 +12,7 @@ export type Metrics = {
   gapClosure: MetricResult;
   /** Average drop in |self - others| rating difference, first to latest 360 cycle (rating points; positive = converging). */
   selfVs360Convergence: MetricResult;
-  /** Share of learning-path items marked improved (0 to 1). */
+  /** Share of learning-path items marked done (0 to 1). */
   learningPathCompletion: MetricResult;
 };
 
@@ -74,18 +74,18 @@ export function learningPathCompletion(events: StoredEvent[]): MetricResult {
     if (!prev || at >= prev.at) latestStatus.set(key, { pathId: e.props.pathId, status: e.props.status, at });
   }
 
-  const improvedPerPath = new Map<string, number>();
+  const donePerPath = new Map<string, number>();
   for (const { pathId, status } of latestStatus.values()) {
-    if (status === "improved") improvedPerPath.set(pathId, (improvedPerPath.get(pathId) ?? 0) + 1);
+    if (status === "done") donePerPath.set(pathId, (donePerPath.get(pathId) ?? 0) + 1);
   }
 
   let items = 0;
-  let improved = 0;
+  let done = 0;
   for (const [pathId, count] of itemCounts) {
     items += count;
-    improved += Math.min(improvedPerPath.get(pathId) ?? 0, count);
+    done += Math.min(donePerPath.get(pathId) ?? 0, count);
   }
-  return { value: items ? improved / items : null, sampleSize: itemCounts.size };
+  return { value: items ? done / items : null, sampleSize: itemCounts.size };
 }
 
 function ofName<N extends EventName>(events: StoredEvent[], name: N): StoredEvent<N>[] {

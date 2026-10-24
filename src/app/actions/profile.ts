@@ -8,11 +8,11 @@ import { requireUser } from "@/lib/current-user";
 import { track } from "@/lib/metrics/track";
 import { deleteAccount } from "@/lib/privacy/deletion";
 import { SESSION_COOKIE } from "@/lib/session";
-import { ROLES, isValidTransition } from "@/shared/roles";
+import { ROLES, TARGET_ROLES, isValidTransition } from "@/shared/roles";
 
 const rolesSchema = z.object({
   currentRole: z.enum(ROLES),
-  targetRole: z.enum(ROLES),
+  targetRole: z.enum(TARGET_ROLES),
 });
 
 function parseRoles(formData: FormData) {

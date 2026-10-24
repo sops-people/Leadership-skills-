@@ -1,10 +1,10 @@
 // Events that feed the four success metrics (PRD section 9).
-// Record them with track() from "@/lib/metrics/track". Who sends each one:
+// Record them with track() from "@/lib/metrics/track". Where each is sent from:
 //
-//   signed-up, onboarding-completed      Maria (already wired in)
-//   self-assessment-completed            Darko
-//   gap-report-created, 360-cycle-closed Darko
-//   path-created, item-status-changed    Sops
+//   signed-up, onboarding-completed      platform (sign-up, onboarding)
+//   self-assessment-completed            assessment (Darko's code)
+//   gap-report-created, 360-cycle-closed assessment (Darko's code)
+//   path-created, item-status-changed    learning path (Sops's code)
 
 export type EventProps = {
   "signed-up": Record<string, never>;
@@ -18,7 +18,7 @@ export type EventProps = {
   "item-status-changed": {
     pathId: string;
     itemId: string;
-    status: "not-started" | "in-progress" | "improved";
+    status: "not_started" | "in_progress" | "done";
   };
 };
 

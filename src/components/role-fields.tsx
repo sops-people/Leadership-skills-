@@ -1,5 +1,5 @@
 import { Field, Select } from "./ui";
-import { ROLES } from "@/shared/roles";
+import { ROLES, TARGET_ROLES } from "@/shared/roles";
 
 export function RoleFields({ currentRole, targetRole }: { currentRole?: string | null; targetRole?: string | null }) {
   return (
@@ -19,7 +19,7 @@ export function RoleFields({ currentRole, targetRole }: { currentRole?: string |
           <option value="" disabled>
             Choose…
           </option>
-          {ROLES.map((role) => (
+          {TARGET_ROLES.map((role) => (
             <option key={role}>{role}</option>
           ))}
         </Select>

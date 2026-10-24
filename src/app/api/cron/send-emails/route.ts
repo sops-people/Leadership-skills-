@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { processDueEmails } from "@/lib/email/send";
+import { AUTO_REMINDER, remindPending } from "@/lib/assessment/invites";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,10 @@ export async function GET(request: NextRequest) {
   if (!secret || !sameSecret(request.headers.get("authorization") ?? "", `Bearer ${secret}`)) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
+  // Darko's automatic 360 reminders queue emails first; then everything due is sent.
+  const reminded = await remindPending({ rules: AUTO_REMINDER });
   const attempted = await processDueEmails();
-  return NextResponse.json({ attempted });
+  return NextResponse.json({ reminded, attempted });
 }
 
 function sameSecret(given: string, expected: string): boolean {

@@ -1,4 +1,4 @@
-// Task 3 (platform) models. Darko and Sops add their own models below.
+// All three parts: platform (Maria), assessment and 360 (Darko), learning path (Sops).
 // Anything that belongs to a user must reference User with onDelete: Cascade,
 // so "delete my account" removes all of that user's data.
 //
@@ -28,6 +28,10 @@ model User {
   loginTokens   LoginToken[]
   events        Event[]
   emailRequests EmailRequest[]
+  rounds        AssessmentRound[]
+  skillProgress SkillProgress[]
+  itemProgress  ItemProgress[]
+  itemVotes     ItemVote[]
 }
 
 /// One-time log-in links. Only a hash of the token is stored.
@@ -80,4 +84,103 @@ model Event {
   createdAt DateTime @default(now())
 
   @@index([name, createdAt])
+}
+
+// ---------- Assessment and 360 (Darko) ----------
+
+/// One self-assessment + 360 round. Re-assessment starts a new round.
+model AssessmentRound {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number          Int
+  startedAt       DateTime      @default(now())
+  selfCompletedAt DateTime?
+  selfRatings     SelfRating[]
+  invites         RaterInvite[]
+
+  @@unique([userId, number])
+}
+
+model SelfRating {
+  id      String          @id @default(uuid())
+  roundId String
+  round   AssessmentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  skillId String
+  score   Int
+
+  @@unique([roundId, skillId])
+}
+
+/// A 360 invite. The token is the rater's private survey link.
+model RaterInvite {
+  token          String          @id
+  roundId        String
+  round          AssessmentRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  raterName      String
+  raterEmail     String
+  relationship   String
+  createdAt      DateTime        @default(now())
+  reminders      Int             @default(0)
+  lastRemindedAt DateTime?
+  completedAt    DateTime?
+  ratings        RaterRating[]
+}
+
+model RaterRating {
+  id          String      @id @default(uuid())
+  inviteToken String
+  invite      RaterInvite @relation(fields: [inviteToken], references: [token], onDelete: Cascade)
+  skillId     String
+  /// Null means "not observed".
+  score       Int?
+
+  @@unique([inviteToken, skillId])
+}
+
+// ---------- Learning path (Sops) ----------
+
+/// not_started | in_progress | improved
+model SkillProgress {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId   String
+  status    String
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, skillId])
+}
+
+/// not_started | in_progress | done
+model ItemProgress {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId   String
+  itemId    String
+  status    String
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, itemId])
+}
+
+/// "Was this useful?" votes. They change the ranking.
+model ItemVote {
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  useful    Int    @default(0)
+  notUseful Int    @default(0)
+
+  @@id([userId, itemId])
+}
+
+/// Search results per skill, so content search runs once, not on every page view.
+model ContentCache {
+  skillId   String   @id
+  /// JSON array of content items.
+  items     String
+  deadLinks Int      @default(0)
+  /// JSON array of source errors.
+  errors    String   @default("[]")
+  updatedAt DateTime @updatedAt
 }

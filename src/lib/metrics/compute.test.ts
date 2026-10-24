@@ -45,9 +45,9 @@ describe("computeMetrics", () => {
   it("learning path completion uses each item's latest status", () => {
     const m = computeMetrics([
       ev("path-created", "a", { pathId: "p", itemCount: 4 }),
-      ev("item-status-changed", "a", { pathId: "p", itemId: "1", status: "improved" }, 1),
-      ev("item-status-changed", "a", { pathId: "p", itemId: "2", status: "improved" }, 1),
-      ev("item-status-changed", "a", { pathId: "p", itemId: "2", status: "in-progress" }, 2),
+      ev("item-status-changed", "a", { pathId: "p", itemId: "1", status: "done" }, 1),
+      ev("item-status-changed", "a", { pathId: "p", itemId: "2", status: "done" }, 1),
+      ev("item-status-changed", "a", { pathId: "p", itemId: "2", status: "in_progress" }, 2),
     ]);
     expect(m.learningPathCompletion).toEqual({ value: 0.25, sampleSize: 1 });
   });

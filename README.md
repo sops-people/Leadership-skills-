@@ -1,10 +1,16 @@
 # Leadership Skills
 
-v1 of the leadership learning and development app described in [PRD.md](PRD.md).
+v1 of the leadership learning and development app described in [PRD.md](PRD.md):
+rate yourself on 19 leadership skills, collect 360 feedback, get a gap report and a
+learning path, and track progress.
 
-This branch holds **Task 3, Platform and experience**: project setup, sign-up and log-in,
-onboarding, shared design, home screen, email sending, success-metric tracking and privacy.
-Darko (Task 1) and Sops (Task 2) build on top of it.
+All three parts live in this one Next.js app:
+
+| Part | Owner | Code |
+| --- | --- | --- |
+| Task 1: Assessment, 360 and gap report | Darko | `src/lib/assessment/`, `src/app/(app)/assessment`, `gap-report`, `src/app/rate` |
+| Task 2: Learning path and content | Sops | `src/lib/learning/`, `src/app/(app)/learning-path` |
+| Task 3: Platform and experience | Maria | everything else: sign-up, onboarding, profile, home, design, email, metrics, privacy |
 
 ## Run it locally
 
@@ -18,8 +24,8 @@ npm run dev          # http://localhost:3000
 ```
 
 Sign up with any email address. Emails aren't sent locally: open
-http://localhost:3000/dev/outbox and click the log-in link. To log in as a sample user,
-use `alex@example.com`, `sam@example.com` or `jo@example.com` on the log-in page.
+http://localhost:3000/dev/outbox and click the log-in link. Rater survey links show
+up there too, so you can act as each rater (use a private window).
 
 ```bash
 npm test             # unit tests
@@ -30,72 +36,59 @@ npm run metrics      # prints the four success metrics from the database
 ## Stack
 
 Next.js 15 (React, TypeScript) · Prisma with SQLite locally · Tailwind CSS · Resend for
-email · Vitest. Hosting and the production database are still to be chosen at kickoff;
+email · Vitest. Hosting and the production database are still to be chosen;
 switching to Postgres is a one-line change in `prisma/schema.prisma`.
 
 Log-in is a one-time emailed link, built in, so the app runs without any outside accounts.
-If the team prefers hosted auth (Supabase Auth or Clerk), only `src/lib/auth.ts`,
-`src/lib/session.ts` and the sign-up and log-in pages change.
+
+## Agreed formats
+
+| Format | Owner | Where |
+| --- | --- | --- |
+| Skill taxonomy (19 skills, bars and importance per role) | Darko | `src/lib/assessment/taxonomy.ts` |
+| Gap report: `items` with `roleGap`, `blindSpot`, `priority`, plus `generatedAt` | Darko | `src/lib/assessment/scoring.ts` |
+| Progress: skills `not_started` / `in_progress` / `improved`, items `not_started` / `in_progress` / `done` | Sops | `src/lib/learning/` |
+| User profile and Email request | Maria | `src/shared/formats.ts` |
+| Roles: current Manager, Director, VP, C-level; target Director, VP, C-level | All | `src/shared/roles.ts` |
+
+The learning path reads Darko's gap report directly. All email goes through
+`requestEmail()` in the Email request format.
+
+## Anonymity
+
+Others' average for a skill is shown only once **3 or more** people have rated that
+skill, with all relationships pooled (Darko's rule). "Not observed" answers don't
+count, and the user never sees individual answers or who has responded.
+The per-group rule proposed in the kickoff doc (peers and direct reports counted
+separately, manager shown on its own line) is still an open decision.
 
 ## Where things are
 
 | Path | What |
 | --- | --- |
-| `src/shared/formats.ts` | The five shared formats. User profile and Email request are final drafts; the other three are placeholders for their owners |
-| `src/shared/events.ts` | Metric events, and who sends which |
-| `src/shared/roles.ts` | Role list: Manager, Director, VP, C-level |
-| `src/shared/sample-data.ts` | Sample skills (PRD section 7), users, 360 ratings and a gap report |
+| `src/shared/` | Shared formats, roles, metric events, sample users |
 | `src/components/ui.tsx` | Shared design: Button, ButtonLink, Field, Input, Select, Card, PageHeader, Notice |
-| `src/lib/current-user.ts` | `requireProfile()` gives a page the signed-in user's profile |
-| `src/lib/email/send.ts` | `requestEmail()`, `processDueEmails()`, `purgeRecipientData()` |
+| `src/lib/current-user.ts` | `requireUser()` / `requireProfile()` for pages and actions |
+| `src/lib/email/` | `requestEmail()`, `processDueEmails()`, `purgeRecipientData()`, templates |
 | `src/lib/metrics/` | `track()` records an event; `computeMetrics()` works out the four metrics |
-| `src/lib/privacy/` | `toRatingsView()` applies the 360 anonymity rules; `deleteAccount()` |
-| `src/app/(app)/` | Signed-in screens. Assessment, gap report and learning path are placeholders |
-
-## For Darko and Sops
-
-- **Your screens:** replace the placeholder page in `src/app/(app)/assessment`,
-  `gap-report` or `learning-path`. Start each page with `const profile = await requireProfile();`.
-- **Your data:** add models to `prisma/schema.prisma` with a `userId` relation and
-  `onDelete: Cascade`, so account deletion removes them.
-- **Sending email:**
-
-  ```ts
-  await requestEmail({
-    recipient: rater.email,
-    template: "rater-invite",
-    links: [raterPageUrl],
-    variables: { userName: profile.name, dueDate: "14 November" },
-    requestedBy: "assessment",
-    relatedId: cycle.id,          // lets purgeRecipientData(cycle.id) remove rater emails later
-    sendAt: undefined,            // or a Date, for a reminder
-  });
-  ```
-
-- **Metrics:** call `track()` with the events listed in `src/shared/events.ts`
-  (for example `track("self-assessment-completed", profile.userId, { assessmentId })`).
-- **360 results:** pass raw ratings through `toRatingsView()` before showing anything.
-  Peer and direct-report scores show only with 3 or more raters in that group; manager
-  scores show on their own line; comments are unattributed and sorted.
-- **Design:** use the components in `src/components/ui.tsx` and the colour names in
-  `tailwind.config.ts` (`bg-brand`, `text-muted`, `border-line`...).
-
-## CI
-
-The CI workflow is in `docs/ci-workflow.yml`. Move it to `.github/workflows/ci.yml` to switch it on
-(pushing workflow files needs a GitHub token with the `workflow` scope).
+| `src/lib/privacy/` | `deleteAccount()` |
+| `src/lib/assessment/` | Taxonomy, rating scale, gap scoring, invites and reminders (Darko) |
+| `src/lib/learning/` | Content search, ranking, learning path, progress (Sops) |
 
 ## Scheduled emails
 
 `GET /api/cron/send-emails` with `Authorization: Bearer $CRON_SECRET` sends queued
-emails whose `sendAt` has passed. Point the host's scheduler at it every 15 minutes.
+emails whose `sendAt` has passed (including 90-day re-assessment reminders) and sends
+automatic rater reminders. Point the host's scheduler at it every 15 minutes.
 
 ## Not done yet
 
 - No `package-lock.json`: whoever runs `npm install` first, please commit it.
-- End-to-end browser tests (planned with Playwright once the three parts connect).
-- Hosting, production database and email domain: decisions for kickoff.
+- End-to-end browser tests (planned with Playwright).
+- Hosting, production database and email domain: still to decide.
 - Rate limiting on log-in link requests.
 - Logging out deletes the session cookie but doesn't revoke a copied token (valid 30 days).
   Fix later with a session version on User.
 - A short privacy notice for raters, linked from the invite email (open question).
+- Content search is slow on first run (it searches each skill in turn; results are cached).
+- Paid content sources (course catalogues, cost, terms) are undecided.

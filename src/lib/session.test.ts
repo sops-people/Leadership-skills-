@@ -22,6 +22,6 @@ describe("role transitions", () => {
   it("allows the same level or higher, not lower", () => {
     expect(isValidTransition("VP", "C-level")).toBe(true);
     expect(isValidTransition("VP", "VP")).toBe(true);
-    expect(isValidTransition("C-level", "Manager")).toBe(false);
+    expect(isValidTransition("C-level", "Director")).toBe(false);
   });
 });

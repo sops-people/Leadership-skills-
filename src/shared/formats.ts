@@ -1,14 +1,14 @@
-// Shared data formats, agreed in week 1. Each format has one owner; the others
-// build against it. Change a format only with its owner.
+// Shared data formats. Each format has one owner; the others build against it.
+// Change a format only with its owner.
 //
-//   User profile     Maria  (final draft, below)
-//   Email request    Maria  (final draft, below)
-//   Skill taxonomy   Darko  (placeholder)
-//   Gap report       Darko  (placeholder)
-//   Progress update  Sops   (placeholder)
+//   User profile     Maria  below
+//   Email request    Maria  below
+//   Skill taxonomy   Darko  src/lib/assessment/taxonomy.ts
+//   Gap report       Darko  src/lib/assessment/scoring.ts (buildGapReport)
+//   Progress update  Sops   src/lib/learning
 
 import { z } from "zod";
-import { ROLES } from "./roles";
+import { ROLES, TARGET_ROLES } from "./roles";
 
 // ---------- User profile (owner: Maria) ----------
 
@@ -17,7 +17,7 @@ export const userProfileSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   currentRole: z.enum(ROLES),
-  targetRole: z.enum(ROLES),
+  targetRole: z.enum(TARGET_ROLES),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
@@ -52,30 +52,4 @@ export const emailRequestInputSchema = z.object({
 
 export type EmailRequestInput = z.input<typeof emailRequestInputSchema>;
 
-// ---------- Placeholders for the other owners to replace ----------
-
-/** Owner: Darko. Ids and categories follow his taxonomy (GET /api/taxonomy). */
-export type Skill = {
-  skillId: string;
-  name: string;
-  category: "c_level" | "soft";
-};
-
-/** Owner: Darko. Placeholder: gap = role bar minus self rating, positive means a gap. */
-export type GapReport = {
-  reportId: string;
-  userId: string;
-  cycle: number;
-  createdAt: Date;
-  gaps: { skillId: string; roleGap: number; selfVs360Gap: number | null }[];
-};
-
-/** Owner: Sops. Placeholder, using the PRD's statuses. */
-export type ProgressUpdate = {
-  userId: string;
-  pathId: string;
-  itemId: string;
-  skillId: string;
-  status: "not-started" | "in-progress" | "improved";
-  updatedAt: Date;
-};
+// The other three formats live with their owners' code (see the table above).

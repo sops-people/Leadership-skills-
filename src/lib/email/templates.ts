@@ -23,8 +23,9 @@ const templates: Record<EmailTemplate, TemplateDef> = {
     render: (v) => ({
       subject: `${v.userName} would value your feedback`,
       lines: [
+        ...(v.raterName ? [`Hi ${v.raterName},`] : []),
         `${v.userName} has asked you for honest feedback on their leadership skills.`,
-        "It takes about 10 minutes. Peer and direct-report answers are combined, and only appear once at least 3 people in that group have answered. A manager's rating is shown on its own.",
+        `It takes about 10 minutes. Your answers are anonymous: ${v.userName} only sees averages, and only once at least 3 people have rated a skill.`,
         ...(v.dueDate ? [`Please answer by ${v.dueDate}.`] : []),
       ],
       button: "Give feedback",
@@ -35,8 +36,9 @@ const templates: Record<EmailTemplate, TemplateDef> = {
     render: (v) => ({
       subject: `Reminder: feedback for ${v.userName}`,
       lines: [
+        ...(v.raterName ? [`Hi ${v.raterName},`] : []),
         `A quick reminder that ${v.userName} asked for your feedback.`,
-        "Peer and direct-report answers are combined and never shown one by one.",
+        `Your answers stay anonymous: ${v.userName} only sees averages across at least 3 people.`,
         ...(v.dueDate ? [`Please answer by ${v.dueDate}.`] : []),
       ],
       button: "Give feedback",

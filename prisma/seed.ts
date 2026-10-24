@@ -33,8 +33,8 @@ async function main() {
       event("360-cycle-closed", alex.id, { cycle: 1, pairs: [{ skillId: "communication-storytelling", self: 4, others: 2.8 }] }, 94),
       event("360-cycle-closed", alex.id, { cycle: 2, pairs: [{ skillId: "communication-storytelling", self: 3.5, others: 3.1 }] }, 4),
       event("path-created", alex.id, { pathId: "p1", itemCount: 4 }, 94),
-      event("item-status-changed", alex.id, { pathId: "p1", itemId: "i1", status: "improved" }, 60),
-      event("item-status-changed", alex.id, { pathId: "p1", itemId: "i2", status: "in-progress" }, 30),
+      event("item-status-changed", alex.id, { pathId: "p1", itemId: "i1", status: "done" }, 60),
+      event("item-status-changed", alex.id, { pathId: "p1", itemId: "i2", status: "in_progress" }, 30),
     ],
   });
 
