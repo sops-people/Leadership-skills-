@@ -67,7 +67,7 @@ export async function addInvite(formData: FormData) {
   else if (!RELATIONSHIPS.some((r) => r.id === relationship)) error = "Choose how this person works with you.";
   if (error) redirect(`/assessment/invites?error=${encodeURIComponent(error)}`);
 
-  await sendInvite({ roundId: round.id, userName: profile.name, raterName, raterEmail, relationship });
+  await sendInvite({ roundId: round.id, userId: profile.userId, userName: profile.name, raterName, raterEmail, relationship });
   redirect("/assessment/invites?msg=sent");
 }
 
@@ -91,20 +91,23 @@ export async function submitRaterRatings(token: string, formData: FormData) {
   }
   if (missing.length) redirect(`/rate/${token}?missing=${missing.join(",")}`);
 
-  // Mark complete first, so a double submit can't record two sets of answers.
-  const { count } = await db.raterInvite.updateMany({
-    where: { token, completedAt: null },
-    data: { completedAt: new Date() },
-  });
-  if (count === 1) {
-    await db.raterRating.createMany({
+  // Completion and answers are written together: a double submit can't record two
+  // sets, and a failed insert can't leave a "completed" invite with no answers.
+  const recorded = await db.$transaction(async (tx) => {
+    const { count } = await tx.raterInvite.updateMany({
+      where: { token, completedAt: null },
+      data: { completedAt: new Date() },
+    });
+    if (count !== 1) return false;
+    await tx.raterRating.createMany({
       data: Object.entries(ratings).map(([skillId, r]) => ({
         inviteToken: token,
         skillId,
         score: typeof r === "number" ? r : null,
       })),
     });
-    await afterRaterResponse(invite.roundId);
-  }
+    return true;
+  });
+  if (recorded) await afterRaterResponse(invite.roundId);
   redirect(`/rate/${token}?done=1`);
 }

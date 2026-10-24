@@ -96,6 +96,10 @@ model AssessmentRound {
   number          Int
   startedAt       DateTime      @default(now())
   selfCompletedAt DateTime?
+  /// Set once when the 3rd rater responds; guards the 360-cycle-closed event.
+  cycleClosedAt   DateTime?
+  /// Set once when the learning path is first complete; guards the path-created event.
+  pathCreatedAt   DateTime?
   selfRatings     SelfRating[]
   invites         RaterInvite[]
 
@@ -160,7 +164,8 @@ model ItemProgress {
   status    String
   updatedAt DateTime @updatedAt
 
-  @@id([userId, itemId])
+  /// Per skill: the same link can appear under two skills with separate progress.
+  @@id([userId, skillId, itemId])
 }
 
 /// "Was this useful?" votes. They change the ranking.

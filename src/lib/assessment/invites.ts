@@ -40,12 +40,15 @@ export function shouldRemind(invite: InviteTiming, now: number, rules: ReminderR
 
 export async function sendInvite({
   roundId,
+  userId,
   userName,
   raterName,
   raterEmail,
   relationship,
 }: {
   roundId: string;
+  /** The user being rated; deleting their account deletes these emails too. */
+  userId: string;
   userName: string;
   raterName: string;
   raterEmail: string;
@@ -61,6 +64,7 @@ export async function sendInvite({
     variables: { userName, raterName },
     requestedBy: "assessment",
     relatedId: roundId,
+    userId,
   });
   return invite;
 }
@@ -88,6 +92,7 @@ export async function remindPending({
       variables: { userName: invite.round.user.name, raterName: invite.raterName },
       requestedBy: "assessment",
       relatedId: invite.roundId,
+      userId: invite.round.userId,
     });
     await db.raterInvite.update({
       where: { token: invite.token },

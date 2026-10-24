@@ -52,10 +52,12 @@ export default async function LearningPathPage({ searchParams }: { searchParams:
 
   // Metric: record the path once per round, when every step has been searched.
   if (steps.length && !unsearched) {
-    const existing = await db.event.findFirst({
-      where: { name: "path-created", userId: profile.userId, props: { contains: round.id } },
+    // Conditional update, so two page loads at once record it only once.
+    const { count } = await db.assessmentRound.updateMany({
+      where: { id: round.id, pathCreatedAt: null },
+      data: { pathCreatedAt: new Date() },
     });
-    if (!existing) {
+    if (count === 1) {
       const itemCount = steps.reduce((n, s) => n + s.items.length, 0);
       await track("path-created", profile.userId, { pathId: round.id, itemCount });
     }
@@ -163,7 +165,7 @@ export default async function LearningPathPage({ searchParams }: { searchParams:
                         <input type="hidden" name="itemId" value={item.itemId} />
                         <Select
                           name="status"
-                          defaultValue={state.items[item.itemId] ?? "not_started"}
+                          defaultValue={state.items[`${step.skillId}/${item.itemId}`] ?? "not_started"}
                           aria-label="Progress on this item"
                           className="mt-0 w-auto"
                         >

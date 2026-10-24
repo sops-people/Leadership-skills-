@@ -1,15 +1,14 @@
 // Assessment storage: rounds, self ratings and rater answers, plus the events and
 // emails that follow from them. Each re-assessment is a new round.
-import type { AssessmentRound } from "@prisma/client";
+import { Prisma, type AssessmentRound } from "@prisma/client";
 import { db } from "../db";
 import { appUrl } from "../config";
 import { requestEmail, purgeRecipientData } from "../email/send";
 import { track } from "../metrics/track";
 import { buildGapReport, MIN_RATERS, type GapReport, type RaterResponse } from "./scoring";
 import { NOT_OBSERVED } from "./scale";
+import { REASSESS_AFTER_DAYS, reassessmentDue } from "../learning/progress";
 import type { TargetRole } from "@/shared/roles";
-
-const REASSESS_AFTER_DAYS = 90;
 
 export async function latestRound(userId: string): Promise<AssessmentRound | null> {
   return db.assessmentRound.findFirst({ where: { userId }, orderBy: { number: "desc" } });
@@ -90,16 +89,24 @@ export async function completeSelfAssessment(
     variables: { name: user.name },
     sendAt: new Date(Date.now() + REASSESS_AFTER_DAYS * 24 * 60 * 60 * 1000),
     requestedBy: "assessment",
+    // Tied to the round, so starting a re-assessment cancels this reminder.
+    relatedId: round.id,
     userId: user.id,
   });
 }
 
-/** After a rater responds: when completed raters reach exactly MIN_RATERS, the 360 cycle closes. */
+/** After a rater responds: once completed raters reach MIN_RATERS, the 360 cycle closes (once per round). */
 export async function afterRaterResponse(roundId: string) {
   const round = await db.assessmentRound.findUnique({ where: { id: roundId }, include: { user: true } });
-  if (!round) return;
+  if (!round || !round.user.targetRole) return;
   const completed = await db.raterInvite.count({ where: { roundId, completedAt: { not: null } } });
-  if (completed !== MIN_RATERS || !round.user.targetRole) return;
+  if (completed < MIN_RATERS) return;
+  // Conditional update, so two raters finishing at once can't skip or double the event.
+  const { count } = await db.assessmentRound.updateMany({
+    where: { id: roundId, cycleClosedAt: null },
+    data: { cycleClosedAt: new Date() },
+  });
+  if (count !== 1) return;
 
   const { report } = await gapReportFor(round.userId, round.user.targetRole as TargetRole);
   await track("360-cycle-closed", round.userId, {
@@ -110,12 +117,22 @@ export async function afterRaterResponse(roundId: string) {
   });
 }
 
-/** Starts the next round. Removes rater emails from the previous one (privacy rule). */
-export async function startReassessment(userId: string): Promise<AssessmentRound> {
+/**
+ * Starts the next round, only once the previous one is 90 days past its self-assessment.
+ * Removes the previous round's rater emails and cancels its queued emails (privacy rule).
+ * Returns the current round unchanged when a re-assessment isn't due.
+ */
+export async function startReassessment(userId: string): Promise<AssessmentRound | null> {
   const prev = await latestRound(userId);
-  if (prev) {
+  if (!prev?.selfCompletedAt || !reassessmentDue(prev.selfCompletedAt).isDue) return prev;
+  try {
+    const next = await db.assessmentRound.create({ data: { userId, number: prev.number + 1 } });
     await purgeRecipientData(prev.id);
     await db.raterInvite.updateMany({ where: { roundId: prev.id }, data: { raterEmail: "[removed]" } });
+    return next;
+  } catch (err) {
+    // P2002: a double click already created the next round.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") return latestRound(userId);
+    throw err;
   }
-  return db.assessmentRound.create({ data: { userId, number: (prev?.number ?? 0) + 1 } });
 }

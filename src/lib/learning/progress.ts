@@ -41,7 +41,8 @@ export async function loadState(userId: string) {
   ]);
   return {
     skills: Object.fromEntries(skills.map((s) => [s.skillId, s.status as SkillStatus])) as Record<string, SkillStatus>,
-    items: Object.fromEntries(items.map((i) => [i.itemId, i.status as ItemStatus])) as Record<string, ItemStatus>,
+    /** Keyed by `${skillId}/${itemId}`. */
+    items: Object.fromEntries(items.map((i) => [`${i.skillId}/${i.itemId}`, i.status as ItemStatus])) as Record<string, ItemStatus>,
     feedback: Object.fromEntries(votes.map((v) => [v.itemId, { useful: v.useful, notUseful: v.notUseful }])) as Record<string, Votes>,
   };
 }
@@ -58,8 +59,8 @@ export async function setSkillStatus(userId: string, skillId: string, status: st
 export async function setItemStatus(userId: string, skillId: string, itemId: string, status: string, pathId: string) {
   if (!isItemStatus(status)) throw new Error(`status must be one of ${ITEM_STATUSES.join(", ")}`);
   await db.itemProgress.upsert({
-    where: { userId_itemId: { userId, itemId } },
-    update: { status, skillId },
+    where: { userId_skillId_itemId: { userId, skillId, itemId } },
+    update: { status },
     create: { userId, skillId, itemId, status },
   });
   const skill = await db.skillProgress.findUnique({ where: { userId_skillId: { userId, skillId } } });
