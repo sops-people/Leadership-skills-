@@ -1,0 +1,80 @@
+{
+  "user_id": "u-sample-1",
+  "current_role": "Director",
+  "target_role": "VP",
+  "generated_at": "2026-07-20",
+  "skills": [
+    {
+      "skill_id": "financial-acumen",
+      "self_score": 2,
+      "others_avg": 2.3,
+      "role_bar": 4,
+      "gap": 2,
+      "blind_spot": -0.3,
+      "priority": 2.0
+    },
+    {
+      "skill_id": "feedback",
+      "self_score": 3,
+      "others_avg": 2.0,
+      "role_bar": 4,
+      "gap": 1,
+      "blind_spot": 1.0,
+      "priority": 1.8
+    },
+    {
+      "skill_id": "stakeholder-board",
+      "self_score": 2.5,
+      "others_avg": 2.7,
+      "role_bar": 4,
+      "gap": 1.5,
+      "blind_spot": -0.2,
+      "priority": 1.35
+    },
+    {
+      "skill_id": "decision-ambiguity",
+      "self_score": 3,
+      "others_avg": 2.5,
+      "role_bar": 4,
+      "gap": 1,
+      "blind_spot": 0.5,
+      "priority": 1.2
+    },
+    {
+      "skill_id": "emotional-intelligence",
+      "self_score": 4,
+      "others_avg": 3.0,
+      "role_bar": 4,
+      "gap": 0,
+      "blind_spot": 1.0,
+      "priority": 0.8
+    },
+    {
+      "skill_id": "negotiation",
+      "self_score": 3,
+      "others_avg": 3.2,
+      "role_bar": 4,
+      "gap": 1,
+      "blind_spot": -0.2,
+      "priority": 0.6
+    },
+    {
+      "skill_id": "strategic-thinking",
+      "self_score": 4,
+      "others_avg": 4.1,
+      "role_bar": 4,
+      "gap": 0,
+      "blind_spot": -0.1,
+      "priority": 0.0
+    },
+    {
+      "skill_id": "communication-storytelling",
+      "self_score": 4,
+      "others_avg": 4.3,
+      "role_bar": 4,
+      "gap": 0,
+      "blind_spot": -0.3,
+      "priority": 0.0
+    }
+  ]
+}

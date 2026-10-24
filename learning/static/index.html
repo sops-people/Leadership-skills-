@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Learning Path</title>
+<style>
+  /* Placeholder styles until Maria's shared design is ready. */
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1c1c1c; --muted:#666; --line:#e2e2de;
+          --accent:#2f5d8a; --warn:#9a5b00; --warn-bg:#fff4e0; --good:#2e7d4f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .banner { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .step-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .order { font-weight: 700; color: var(--accent); }
+  .step h2 { font-size: 1.15rem; margin: 0; flex: 1; }
+  .facts { color: var(--muted); font-size: .9rem; margin: 4px 0 12px; }
+  .blind { color: var(--warn); font-weight: 600; }
+  select { font: inherit; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { border-top: 1px solid var(--line); padding: 10px 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+  li a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  li a:hover { text-decoration: underline; }
+  .meta { color: var(--muted); font-size: .85rem; grid-column: 1; }
+  .controls { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 6px; align-items: center; }
+  .vote { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: .85rem; }
+  .vote.on { border-color: var(--good); color: var(--good); }
+  .empty { color: var(--muted); font-style: italic; }
+  .refresh { float: right; font: inherit; font-size: .9rem; }
+  @media (max-width: 560px) { li { grid-template-columns: 1fr; } .controls { grid-column: 1; grid-row: auto; } }
+</style>
+</head>
+<body>
+<main>
+  <button class="refresh" id="refresh">Search again</button>
+  <h1>Your learning path</h1>
+  <p class="sub" id="sub">Finding training for your gaps… the first search takes about 30 seconds.</p>
+  <div id="banner"></div>
+  <div id="steps"></div>
+</main>
+<script>
+const SKILL_LABELS = { not_started: "Not started", in_progress: "In progress", improved: "Improved" };
+const ITEM_LABELS = { not_started: "Not started", in_progress: "In progress", done: "Done" };
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function options(labels, current) {
+  return Object.entries(labels).map(([v, l]) => `<option value="${v}"${v === current ? " selected" : ""}>${l}</option>`).join("");
+}
+async function post(url, body) {
+  await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+}
+function length(m) { return m == null ? "" : m >= 120 ? `~${Math.round(m / 60)} h` : `~${m} min`; }
+
+function render(data) {
+  document.getElementById("sub").textContent =
+    `${data.steps.length} skills to work on for ${data.target_role}, biggest priority first.`;
+  const r = data.reassessment;
+  document.getElementById("banner").innerHTML = r.is_due
+    ? `<div class="banner">It's time to re-assess (due ${esc(r.due)}). Start a new self-assessment and 360 round to see how your gaps have changed.</div>`
+    : "";
+  document.getElementById("steps").innerHTML = data.steps.map(s => `
+    <section class="step">
+      <div class="step-head">
+        <span class="order">${s.order}</span>
+        <h2>${esc(s.skill_name)}</h2>
+        <select data-skill="${s.skill_id}" aria-label="Progress on ${esc(s.skill_name)}">${options(SKILL_LABELS, s.status)}</select>
+      </div>
+      <p class="facts">Gap to role bar: ${s.gap}
+        ${s.blind_spot > 0 ? ` · <span class="blind">Blind spot: you rate yourself ${s.blind_spot} higher than others do</span>` : ""}</p>
+      ${s.items.length ? `<ul>${s.items.map(i => `
+        <li>
+          <a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.title)}</a>
+          <span class="meta">${esc(i.format)} · ${esc(i.source)}${i.year ? " · " + i.year : ""}${i.length_minutes ? " · " + length(i.length_minutes) : ""}</span>
+          <span class="controls">
+            <select data-skill="${s.skill_id}" data-item="${i.item_id}" aria-label="Progress on this item">${options(ITEM_LABELS, i.status)}</select>
+            <span>Useful?</span>
+            <button class="vote${i.votes.useful ? " on" : ""}" data-vote="1" data-item="${i.item_id}">Yes</button>
+            <button class="vote${i.votes.not_useful ? " on" : ""}" data-vote="0" data-item="${i.item_id}">No</button>
+          </span>
+        </li>`).join("")}</ul>`
+      : `<p class="empty">No working links found for this skill yet. Try "Search again".</p>`}
+    </section>`).join("");
+}
+
+async function load(refresh) {
+  const res = await fetch("/api/path" + (refresh ? "?refresh=1" : ""));
+  render(await res.json());
+}
+
+document.addEventListener("change", async e => {
+  const el = e.target;
+  if (!el.dataset.skill) return;
+  if (el.dataset.item) await post("/api/progress/item", { skill_id: el.dataset.skill, item_id: el.dataset.item, status: el.value });
+  else await post("/api/progress/skill", { skill_id: el.dataset.skill, status: el.value });
+  load();
+});
+document.addEventListener("click", async e => {
+  const el = e.target;
+  if (el.dataset.vote !== undefined) {
+    await post("/api/feedback", { item_id: el.dataset.item, useful: el.dataset.vote === "1" });
+    load();
+  }
+});
+document.getElementById("refresh").addEventListener("click", () => {
+  document.getElementById("sub").textContent = "Searching again…";
+  load(true);
+});
+load();
+</script>
+</body>
+</html>
