@@ -96,7 +96,7 @@ jobs:
           OUT_DIR: out
 
       - name: "Maria: check everyone against the shared formats"
-        run: npx tsx ../ci/integration/check_maria.ts
+        run: npx tsx ../ci/integration/check_maria.mts
         working-directory: maria
         env:
           MARIA_DIR: ${{ github.workspace }}/maria

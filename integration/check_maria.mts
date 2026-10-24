@@ -1,5 +1,5 @@
 // Checks what Darko's and Sops's code produce against the shared formats in
-// Maria's part (src/shared). Run from Maria's checkout: npx tsx ../ci/integration/check_maria.ts
+// Maria's part (src/shared). Run from Maria's checkout: npx tsx ../ci/integration/check_maria.mts
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
