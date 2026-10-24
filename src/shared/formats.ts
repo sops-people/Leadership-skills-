@@ -54,11 +54,11 @@ export type EmailRequestInput = z.input<typeof emailRequestInputSchema>;
 
 // ---------- Placeholders for the other owners to replace ----------
 
-/** Owner: Darko. Placeholder shape so sample data and metrics compile. */
+/** Owner: Darko. Ids and categories follow his taxonomy (GET /api/taxonomy). */
 export type Skill = {
   skillId: string;
   name: string;
-  category: "hard" | "soft";
+  category: "c_level" | "soft";
 };
 
 /** Owner: Darko. Placeholder: gap = role bar minus self rating, positive means a gap. */

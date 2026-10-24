@@ -5,7 +5,7 @@ import { SAMPLE_RATINGS } from "@/shared/sample-data";
 describe("toRatingsView", () => {
   it("shows peers once 3 have rated, and hides 2 direct reports", () => {
     const view = toRatingsView(SAMPLE_RATINGS);
-    const comms = view.skills.find((s) => s.skillId === "communication")!;
+    const comms = view.skills.find((s) => s.skillId === "communication-storytelling")!;
     expect(comms.self).toBe(4);
     expect(comms.manager).toBe(3);
     expect(comms.peers).toBe(2.7);
@@ -39,7 +39,7 @@ describe("toRatingsView", () => {
     const ratings: Rating[] = ["Zed", "Alpha", "Mid"].map((comment, i) => ({
       raterId: `p${i}`,
       raterType: "peer",
-      skillId: "coaching",
+      skillId: "coaching-mentoring",
       score: 3,
       comment,
     }));
