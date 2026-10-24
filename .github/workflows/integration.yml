@@ -1,0 +1,115 @@
+name: Integration test (all three parts)
+
+# Runs each part's own tests, then checks the hand-offs between them:
+# Darko's live gap report into Sops's learning path, and everyone's email
+# requests against the shared format. Results: the run's Summary page.
+
+on:
+  push:
+    branches: [ci/integration-test]
+  workflow_dispatch:
+
+jobs:
+  darko:
+    name: "Task 1 (Darko): own tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --test
+        working-directory: leadership-skills-upload
+
+  sops:
+    name: "Task 2 (Sops): own tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sops/learning-path
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover tests -v
+
+  maria:
+    name: "Task 3 (Maria): own tests and build"
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./ci.db"
+      SESSION_SECRET: "ci-only-secret-0123456789abcdef0123456789"
+      APP_URL: "http://localhost:3000"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: task-3-platform
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npx prisma db push --skip-generate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  handoffs:
+    name: "Hand-offs between the three parts"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ci
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: darko
+      - uses: actions/checkout@v4
+        with:
+          ref: sops/learning-path
+          path: sops
+      - uses: actions/checkout@v4
+        with:
+          ref: task-3-platform
+          path: maria
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm install
+        working-directory: maria
+
+      - name: "Darko: sign up, self-assess, 3 raters, gap report"
+        run: node ci/integration/darko_flow.mjs
+        env:
+          DARKO_DIR: darko/leadership-skills-upload
+          OUT_DIR: out
+
+      - name: "Sops: feed Darko's gap report into the learning path"
+        run: python ci/integration/check_sops.py
+        env:
+          SOPS_DIR: sops
+          OUT_DIR: out
+
+      - name: "Maria: check everyone against the shared formats"
+        run: npx tsx ../ci/integration/check_maria.ts
+        working-directory: maria
+        env:
+          MARIA_DIR: ${{ github.workspace }}/maria
+          OUT_DIR: ${{ github.workspace }}/out
+
+      - name: Summary
+        if: always()
+        run: python ci/integration/summary.py
+        env:
+          OUT_DIR: out
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: handoff-outputs
+          path: out/
