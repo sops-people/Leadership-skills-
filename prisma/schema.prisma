@@ -1,0 +1,83 @@
+// Task 3 (platform) models. Darko and Sops add their own models below.
+// Anything that belongs to a user must reference User with onDelete: Cascade,
+// so "delete my account" removes all of that user's data.
+//
+// SQLite for local dev so nobody needs a database server. When hosting is chosen,
+// switch the provider to "postgresql". JSON is stored as text (String) to stay portable.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Shared format: User profile (see src/shared/formats.ts).
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  /// Null until onboarding is complete.
+  currentRole String?
+  targetRole  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  loginTokens   LoginToken[]
+  events        Event[]
+  emailRequests EmailRequest[]
+}
+
+/// One-time log-in links. Only a hash of the token is stored.
+model LoginToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+/// Shared format: Email request (see src/shared/formats.ts).
+model EmailRequest {
+  id          String    @id @default(uuid())
+  recipient   String
+  template    String
+  /// JSON array of URLs.
+  links       String    @default("[]")
+  /// JSON object of template variables.
+  variables   String    @default("{}")
+  sendAt      DateTime?
+  requestedBy String
+  /// Groups emails for later clean-up, e.g. a 360 cycle id.
+  relatedId   String?
+  /// The app user this email is about, if any.
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// queued | sending | sent | failed
+  status      String    @default("queued")
+  /// When a send run picked it up; used to retry rows stuck in "sending".
+  claimedAt   DateTime?
+  sentAt      DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([status, sendAt])
+  @@index([relatedId])
+}
+
+/// Success-metric events (PRD section 9). Names and props: src/shared/events.ts.
+model Event {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// JSON object.
+  props     String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}

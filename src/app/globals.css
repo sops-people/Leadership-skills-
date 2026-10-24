@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-canvas text-ink antialiased;
+}
+
+:focus-visible {
+  @apply outline-none ring-2 ring-brand ring-offset-2;
+}
