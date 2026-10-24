@@ -1,0 +1,12 @@
+{
+  "name": "leadership-skills-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Leadership learning & development app. Task 1: assessment, 360 feedback and gap report.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  }
+}
