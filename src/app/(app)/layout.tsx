@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { requireUser } from "@/lib/current-user";
-import { signOut } from "@/app/actions/auth";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
@@ -19,7 +18,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             Profile
           </Link>
           <span className="ml-auto text-muted">{user.name}</span>
-          <form action={signOut}>
+          <form method="post" action="/auth/sign-out">
             <button type="submit" className="text-muted hover:text-ink">
               Log out
             </button>

@@ -1,13 +1,11 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/current-user";
 import { track } from "@/lib/metrics/track";
 import { deleteAccount } from "@/lib/privacy/deletion";
-import { SESSION_COOKIE } from "@/lib/session";
 import { ROLES, TARGET_ROLES, isValidTransition } from "@/shared/roles";
 
 const rolesSchema = z.object({
@@ -54,7 +52,7 @@ export async function deleteMyAccount(formData: FormData) {
   if (formData.get("confirm") !== "yes") {
     redirect(`/profile?error=${encodeURIComponent("Tick the box to confirm you want to delete your account.")}`);
   }
+  // The session cookie now points at no account, so every page treats the visitor as signed out.
   await deleteAccount(user.id);
-  (await cookies()).delete(SESSION_COOKIE);
   redirect("/?deleted=1");
 }

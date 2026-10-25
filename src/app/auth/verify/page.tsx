@@ -1,5 +1,4 @@
 import { Button, Card, PageHeader } from "@/components/ui";
-import { verifyLogin } from "@/app/actions/auth";
 
 // The link in the log-in email lands here. The token is only used when the person
 // clicks the button: corporate email scanners open links on a plain GET, and would
@@ -10,7 +9,7 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
     <main className="mx-auto max-w-md px-4 py-16">
       <PageHeader title="Log in to Leadership Skills" />
       <Card>
-        <form action={verifyLogin}>
+        <form method="post" action="/auth/confirm">
           <input type="hidden" name="token" value={token ?? ""} />
           <Button type="submit" className="w-full">
             Log in
