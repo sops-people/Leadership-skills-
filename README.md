@@ -83,7 +83,6 @@ automatic rater reminders. Point the host's scheduler at it every 15 minutes.
 
 ## Not done yet
 
-- No `package-lock.json`: whoever runs `npm install` first, please commit it.
 - End-to-end browser tests (planned with Playwright).
 - Hosting, production database and email domain: still to decide.
 - Rate limiting on log-in link requests.
@@ -92,3 +91,13 @@ automatic rater reminders. Point the host's scheduler at it every 15 minutes.
 - A short privacy notice for raters, linked from the invite email (open question).
 - Content search is slow on first run (it searches each skill in turn; results are cached).
 - Paid content sources (course catalogues, cost, terms) are undecided.
+
+## Online demo (Vercel + Neon)
+
+The demo runs on Vercel with a Neon Postgres database, in demo mode: emails are not
+sent but shown at `/dev/outbox`, and the whole app is behind one shared password
+(`DEMO_MODE=1`, `DEMO_PASSWORD`). Use fake names and emails only. Before real people
+use it, add a Resend API key and a sending domain, and turn demo mode off.
+
+Scheduled emails and automatic rater reminders run once a day (`vercel.json`; the
+free Vercel plan allows daily cron jobs only).

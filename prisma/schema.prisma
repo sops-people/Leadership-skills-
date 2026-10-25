@@ -2,15 +2,15 @@
 // Anything that belongs to a user must reference User with onDelete: Cascade,
 // so "delete my account" removes all of that user's data.
 //
-// SQLite for local dev so nobody needs a database server. When hosting is chosen,
-// switch the provider to "postgresql". JSON is stored as text (String) to stay portable.
+// Postgres (hosted on Neon). Local dev can point DATABASE_URL at a Neon branch or a
+// local Postgres. JSON is stored as text (String) to stay portable.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

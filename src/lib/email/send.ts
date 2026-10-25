@@ -3,7 +3,7 @@
 // to schedule a reminder; /api/cron/send-emails sends scheduled ones.
 import type { EmailRequest } from "@prisma/client";
 import { db } from "../db";
-import { isProduction } from "../config";
+import { isDemo, isProduction } from "../config";
 import { deliver } from "./provider";
 import { missingVariables, renderEmail } from "./templates";
 import { emailRequestInputSchema, type EmailRequestInput, type EmailTemplate } from "@/shared/formats";
@@ -89,8 +89,8 @@ async function sendNow(row: EmailRequest): Promise<EmailRequest> {
   }
 
   // A stored log-in link would let anyone with database access log in, which defeats
-  // hashing the token. Drop it once used, except in local dev where /dev/outbox needs it.
-  const scrub = row.template === "login-link" && (!!process.env.RESEND_API_KEY || isProduction());
+  // hashing the token. Drop it once used, except where /dev/outbox needs it (local dev, demo mode).
+  const scrub = row.template === "login-link" && (!!process.env.RESEND_API_KEY || (isProduction() && !isDemo()));
   const scrubbed = scrub ? { links: "[]" } : {};
 
   return db.emailRequest.update({

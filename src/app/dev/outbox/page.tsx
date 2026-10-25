@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui";
 import { db } from "@/lib/db";
-import { isProduction } from "@/lib/config";
+import { showsOutbox } from "@/lib/config";
 import { renderEmail } from "@/lib/email/templates";
 import type { EmailTemplate } from "@/shared/formats";
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // Local development only: shows emails the app would have sent.
 export default async function OutboxPage() {
-  if (isProduction()) notFound();
+  if (!showsOutbox()) notFound();
 
   const emails = await db.emailRequest.findMany({ orderBy: { createdAt: "desc" }, take: 50 });
   return (

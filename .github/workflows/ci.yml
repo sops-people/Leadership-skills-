@@ -7,8 +7,17 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: "file:./ci.db"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/ci"
       SESSION_SECRET: "ci-only-secret-0123456789abcdef0123456789"
       APP_URL: "http://localhost:3000"
     steps:
@@ -16,9 +25,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # No lockfile yet: the first person to run `npm install` should commit package-lock.json,
-      # then switch this step to `npm ci`.
-      - run: npm install
+      - run: npm ci
       - run: npx prisma db push --skip-generate
       - run: npm run typecheck
       - run: npm test
