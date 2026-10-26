@@ -23,9 +23,9 @@ export default async function HomePage() {
       action: selfDone ? "Review answers" : "Start",
     },
     {
-      title: "Invite 360 raters",
-      text: `Invite at least ${MIN_RATERS} people. Their answers stay anonymous and are only shown once ${MIN_RATERS} have responded.`,
-      status: `${done} of ${invites.length} responded`,
+      title: "Invite 360 raters (optional)",
+      text: `Invite at least ${MIN_RATERS} people to see your blind spots. Their answers stay anonymous and are only shown once ${MIN_RATERS} have responded. You can skip this and still get your gap report and learning path.`,
+      status: invites.length ? `${done} of ${invites.length} responded` : "Optional",
       href: "/assessment/invites",
       action: invites.length ? "Manage invites" : "Invite people",
     },

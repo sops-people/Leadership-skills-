@@ -34,8 +34,13 @@ export default async function InvitesPage({
     <>
       <PageHeader
         title="Invite people to rate you"
-        intro={`Pick people who see your work regularly: your manager, peers and direct reports. Each person gets a private link. You never see individual answers; averages appear in your report once at least ${MIN_RATERS} people have responded.`}
+        intro={`Pick people who see your work regularly: your manager, peers and direct reports. Each person gets a private link. You never see individual answers; averages appear in your report once at least ${MIN_RATERS} people have responded. The 360 is optional: it adds blind spots to your report, but you can get your gap report and learning path without it.`}
       />
+      <p className="mb-6 text-sm">
+        <Link href="/gap-report" className="font-semibold text-brand">
+          Skip for now: see your gap report
+        </Link>
+      </p>
       {notice && <Notice tone="success">{notice}</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
       {showsOutbox() && (
