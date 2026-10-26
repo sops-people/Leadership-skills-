@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Button, Card, Field, Input, Notice, PageHeader, Select } from "@/components/ui";
+import { showsOutbox } from "@/lib/config";
 import { requireProfile } from "@/lib/current-user";
 import { db } from "@/lib/db";
 import { latestRound } from "@/lib/assessment/data";
@@ -36,6 +38,15 @@ export default async function InvitesPage({
       />
       {notice && <Notice tone="success">{notice}</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
+      {showsOutbox() && (
+        <Notice>
+          Emails aren&apos;t sent in this version. To answer as your raters, open their links in the{" "}
+          <Link href="/dev/outbox" className="font-semibold text-brand">
+            dev outbox
+          </Link>
+          .
+        </Notice>
+      )}
 
       <Card className="mb-6">
         <p className="text-lg">

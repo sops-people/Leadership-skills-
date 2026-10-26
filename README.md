@@ -98,7 +98,8 @@ The demo runs on Vercel with a Neon Postgres database, in demo mode: emails are 
 sent but shown at `/dev/outbox` (`DEMO_MODE=1`). Each browser's outbox shows only the
 emails of accounts created in that browser, so testers can't open each other's log-in
 links; someone who signs up in one browser can't log in from another (or after clearing cookies
-or closing a private window). Setting
+or closing a private window). The landing page also offers "Try it now", which
+creates a guest account and logs that browser straight in. Setting
 `DEMO_PASSWORD` puts one shared password in front of the whole app. Use fake names
 and emails only. Before real people
 use it, add a Resend API key and a sending domain, and turn demo mode off.
