@@ -6,6 +6,8 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { sendLoginLink } from "@/lib/auth";
 import { track } from "@/lib/metrics/track";
+import { isDemo } from "@/lib/config";
+import { rememberDemoAccount } from "@/lib/demo-accounts";
 
 const emailSchema = z.string().trim().toLowerCase().email();
 const nameSchema = z.string().trim().min(1).max(100);
@@ -18,9 +20,11 @@ export async function signUp(formData: FormData) {
   }
 
   let user = await db.user.findUnique({ where: { email: email.data } });
+  let created = false;
   if (!user) {
     try {
       user = await db.user.create({ data: { name: name.data, email: email.data } });
+      created = true;
       await track("signed-up", user.id, {});
     } catch (err) {
       // P2002: a simultaneous sign-up with the same email got there first.
@@ -30,6 +34,8 @@ export async function signUp(formData: FormData) {
   }
   // Existing account: just send a log-in link, so we don't reveal who has signed up.
   await sendLoginLink(user);
+  // Only new accounts: typing someone else's email must not reveal their log-in link.
+  if (created && isDemo()) await rememberDemoAccount(user.id);
   redirect("/check-email");
 }
 

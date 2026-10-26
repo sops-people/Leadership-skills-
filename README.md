@@ -95,8 +95,12 @@ automatic rater reminders. Point the host's scheduler at it every 15 minutes.
 ## Online demo (Vercel + Neon)
 
 The demo runs on Vercel with a Neon Postgres database, in demo mode: emails are not
-sent but shown at `/dev/outbox`, and the whole app is behind one shared password
-(`DEMO_MODE=1`, `DEMO_PASSWORD`). Use fake names and emails only. Before real people
+sent but shown at `/dev/outbox` (`DEMO_MODE=1`). Each browser's outbox shows only the
+emails of accounts created in that browser, so testers can't open each other's log-in
+links; someone who signs up in one browser can't log in from another (or after clearing cookies
+or closing a private window). Setting
+`DEMO_PASSWORD` puts one shared password in front of the whole app. Use fake names
+and emails only. Before real people
 use it, add a Resend API key and a sending domain, and turn demo mode off.
 
 Scheduled emails and automatic rater reminders run once a day (`vercel.json`; the

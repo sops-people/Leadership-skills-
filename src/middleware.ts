@@ -3,8 +3,8 @@ import { SESSION_COOKIE, readSessionToken } from "@/lib/session";
 
 const SIGNED_IN_PATHS = ["/home", "/onboarding", "/profile", "/assessment", "/gap-report", "/learning-path"];
 
-// 1. Demo mode: one shared password in front of the whole app, because log-in links
-//    are shown on screen instead of emailed. The cron route has its own secret.
+// 1. Optional: one shared password in front of the whole app (DEMO_PASSWORD).
+//    The cron route has its own secret.
 // 2. Fast check at the edge: no valid session cookie means no signed-in pages.
 //    Pages still look the user up (requireUser), which catches deleted accounts.
 export async function middleware(request: NextRequest) {

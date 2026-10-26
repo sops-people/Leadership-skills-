@@ -39,8 +39,34 @@ export async function readSessionToken(token: string | undefined): Promise<strin
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secretKey(), { algorithms: ["HS256"] });
-    return typeof payload.sub === "string" ? payload.sub : null;
+    // Demo-accounts tokens share the secret; they are not sessions.
+    return typeof payload.sub === "string" && payload.sub !== "demo-accounts" ? payload.sub : null;
   } catch {
     return null;
+  }
+}
+
+// Demo mode: a signed list of the accounts created in this browser. The public
+// outbox shows only their emails, so visitors can't open each other's log-in links.
+export const DEMO_ACCOUNTS_COOKIE = "demo_accounts";
+const MAX_DEMO_ACCOUNTS = 20;
+
+export async function createDemoAccountsToken(userIds: string[]): Promise<string> {
+  return new SignJWT({ ids: userIds.slice(-MAX_DEMO_ACCOUNTS) })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject("demo-accounts")
+    .setIssuedAt()
+    .setExpirationTime(`${MAX_AGE_SECONDS}s`)
+    .sign(secretKey());
+}
+
+/** Returns the account ids, or an empty list if the token is missing, tampered with or expired. */
+export async function readDemoAccountsToken(token: string | undefined): Promise<string[]> {
+  if (!token) return [];
+  try {
+    const { payload } = await jwtVerify(token, secretKey(), { algorithms: ["HS256"], subject: "demo-accounts" });
+    return Array.isArray(payload.ids) ? payload.ids.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
   }
 }

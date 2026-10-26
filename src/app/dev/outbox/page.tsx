@@ -1,20 +1,31 @@
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui";
 import { db } from "@/lib/db";
-import { showsOutbox } from "@/lib/config";
+import { isDemo, showsOutbox } from "@/lib/config";
+import { demoAccountIds } from "@/lib/demo-accounts";
 import { renderEmail } from "@/lib/email/templates";
 import type { EmailTemplate } from "@/shared/formats";
 
 export const dynamic = "force-dynamic";
 
-// Local development only: shows emails the app would have sent.
+// Shows emails the app would have sent: all of them locally; in demo mode only those
+// for accounts created in this browser, so visitors can't use each other's log-in links.
 export default async function OutboxPage() {
   if (!showsOutbox()) notFound();
 
-  const emails = await db.emailRequest.findMany({ orderBy: { createdAt: "desc" }, take: 50 });
+  const demo = isDemo();
+  const where = demo ? { userId: { in: await demoAccountIds() } } : {};
+  const emails = await db.emailRequest.findMany({ where, orderBy: { createdAt: "desc" }, take: 50 });
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <PageHeader title="Dev outbox" intro="The last 50 emails. Nothing here was actually sent." />
+      <PageHeader
+        title="Dev outbox"
+        intro={
+          demo
+            ? "Emails for accounts you created in this browser. Nothing here was actually sent."
+            : "The last 50 emails. Nothing here was actually sent."
+        }
+      />
       <div className="space-y-4">
         {emails.length === 0 && <p className="text-muted">No emails yet.</p>}
         {emails.map((email) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSessionToken, readSessionToken } from "./session";
+import { createDemoAccountsToken, createSessionToken, readDemoAccountsToken, readSessionToken } from "./session";
 import { isValidTransition } from "@/shared/roles";
 
 describe("session tokens", () => {
@@ -23,5 +23,15 @@ describe("role transitions", () => {
     expect(isValidTransition("VP", "C-level")).toBe(true);
     expect(isValidTransition("VP", "VP")).toBe(true);
     expect(isValidTransition("C-level", "Director")).toBe(false);
+  });
+});
+
+describe("demo accounts tokens", () => {
+  it("round-trips the account ids and rejects session tokens", async () => {
+    const token = await createDemoAccountsToken(["a", "b"]);
+    expect(await readDemoAccountsToken(token)).toEqual(["a", "b"]);
+    expect(await readDemoAccountsToken(undefined)).toEqual([]);
+    expect(await readDemoAccountsToken(await createSessionToken("a"))).toEqual([]);
+    expect(await readSessionToken(token)).toBeNull();
   });
 });
